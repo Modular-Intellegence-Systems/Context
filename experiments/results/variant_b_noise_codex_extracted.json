@@ -1,0 +1,1 @@
+{"patch_lines": ["analytics.streams.ingest.stage3.window.max_skew_ms=1200", "analytics.streams.ingest.stage3.watermark.offset_ms=350", "analytics.streams.replicator.quorum.min_nodes=5"], "justification": "Appendix C mandates tighter window and quorum to stabilize telemetry-burst after firmware-v3.18 deployment."}

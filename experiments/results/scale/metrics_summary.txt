@@ -1,0 +1,9 @@
+file                                                                      tokens    real_s    mem_kb  status
+------------------------------------------------------------------------------------------------------------
+experiments/results/scale/variant_a_scale_codex.jsonl                      12047     16.83     53128  ok
+experiments/results/scale/variant_a_scale_gpt4_2.jsonl                         -     14.04     53404  error
+                                                                        error: unexpected status 400 Bad Request: {"detail":"The 'gpt-4.2' model is not supported when using Codex with a ChatGPT account."}
+experiments/results/scale/variant_a_scale_o4mini.jsonl                         -     13.21     53428  error
+                                                                        error: unexpected status 400 Bad Request: {"detail":"The 'o4-mini' model is not supported when using Codex with a ChatGPT account."}
+experiments/results/scale/variant_b_scale_codex.jsonl                      11775      10.2     53116  ok
+experiments/results/scale/variant_c_scale_codex.jsonl                      11188     11.77     53688  ok

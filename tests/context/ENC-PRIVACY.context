@@ -1,0 +1,35 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p1993s3spa5ebcrrcdktke
+author=golden-suite
+date=2025-10-28T19:48:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_encrypted]
+t=ctx.K
+p=7
+cf=0.850
+ts=2025-10-28T19:47:00Z
+ttl=P90D
+src=ops:vault
+lang=en
+tags=secret
+privacy.class=pii
+enc.alg=aes-256-gcm
+enc.keyref=did:key:zVaultKey
+enc.iv=Base64URLIV==
+enc.tag=Base64URLTAG==
+enc.ct=^block:application/octet-stream:0
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=454e8bdef8a965e5c4337ae3f6f3ad2362f62d051470d3ff43b3f4138637a01d
+sig.count=0

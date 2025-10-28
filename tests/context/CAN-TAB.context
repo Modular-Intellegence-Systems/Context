@@ -1,0 +1,31 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p0z9hpr70a4jsmqc4qjnt5
+author=lint-suite
+date=2025-10-28T19:35:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_bad_tab]
+t=ctx.K
+p=3
+cf=0.600
+cf.src=	ts-bad
+	
+ts=2025-10-28T19:30:00Z
+ttl=P30D
+src=ops:test
+lang=en
+ tags=bad,tab
+ d=This capsule contains TAB characters in fields.
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=0000000000000000000000000000000000000000000000000000000000000000

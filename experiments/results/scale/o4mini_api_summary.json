@@ -1,0 +1,38 @@
+[
+  {
+    "variant": "A",
+    "prompt_tokens": 5344,
+    "completion_tokens": 1009,
+    "total_tokens": 6353,
+    "patch_lines": [
+      "analytics.streams.ingest.stage3.window.max_skew_ms=1200",
+      "analytics.streams.ingest.stage3.watermark.offset_ms=350",
+      "analytics.streams.replicator.quorum.min_nodes=5"
+    ],
+    "justification": "Telemetry-burst spikes after firmware-v3.18 rollout require adjusting stage3 window.max_skew_ms, watermark.offset_ms, and quorum.min_nodes for stable ingestion."
+  },
+  {
+    "variant": "B",
+    "prompt_tokens": 5583,
+    "completion_tokens": 682,
+    "total_tokens": 6265,
+    "patch_lines": [
+      "analytics.streams.ingest.stage3.window.max_skew_ms=1200",
+      "analytics.streams.ingest.stage3.watermark.offset_ms=350",
+      "analytics.streams.replicator.quorum.min_nodes=5"
+    ],
+    "justification": "After firmware-v3.18 removed the jitter dampener causing skew during telemetry-burst events, these settings limit max skew, offset, and enforce quorum."
+  },
+  {
+    "variant": "C",
+    "prompt_tokens": 4915,
+    "completion_tokens": 825,
+    "total_tokens": 5740,
+    "patch_lines": [
+      "analytics.streams.ingest.stage3.window.max_skew_ms=1200",
+      "analytics.streams.ingest.stage3.watermark.offset_ms=350",
+      "analytics.streams.replicator.quorum.min_nodes=5"
+    ],
+    "justification": "Mitigates telemetry-burst skew overshoot introduced by firmware-v3.18 by setting stage3 window.max_skew_ms, watermark.offset_ms, and replicator.quorum.min_nodes per appendix C."
+  }
+]

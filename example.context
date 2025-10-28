@@ -1,0 +1,134 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+doc=http://spec.example/context#
+eval=eval:
+exp=exp:
+ops=ops:
+
+[meta]
+doc=01k8nye3njp97qp90hx7asg66k
+author=core-context-team
+date=2025-10-28T18:32:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+policy.cf=Confidence derived from codex-exec AB runs (success ratio).
+policy.ttl=Review capsules at TTL or on new experiment cycle.
+
+[cap i_ab_result]
+t=ctx.I
+p=9
+cf=0.870
+ts=2025-10-28T18:31:00Z
+ttl=P120D
+src=exp:ab-ctx12
+lang=en
+tags=analysis,comparison,token-budget
+d=Variant beta saved 23% tokens and 11% latency against baseline after applying CONTEXT/1.2 capsules.
+
+[cap k_ctx_graph_schema]
+t=ctx.K
+p=8
+cf=0.930
+ts=2025-10-28T18:20:00Z
+ttl=P365D
+src=spec:ctx-graph
+lang=en
+tags=context,graph-model,semantics
+d=CONTEXT/1.2 namespaces provide deterministic graph edges for capsule relations.
+
+[cap l_spec_anchor]
+t=ctx.L
+p=5
+cf=1.000
+ts=2025-10-28T18:18:00Z
+ttl=P365D
+src=spec:ctx12
+lang=en
+tags=reference,specification
+d=https://intranet.example/specs/context_1_2.html
+
+[cap n_noise_packet]
+t=ctx.N
+p=2
+cf=0.200
+ts=2025-10-28T18:10:00Z
+ttl=P30D
+src=eval:raw-log-771
+lang=en
+tags=raw,telemetry
+d=Latency samples: [125, 119, 421, 118, 122] ms (contains outliers).
+
+[cap s_ingest_pipeline]
+t=ctx.S
+p=7
+cf=0.900
+ts=2025-10-28T18:24:00Z
+ttl=P180D
+src=ops:routing
+lang=en
+tags=ingestion,pipeline,rag
+note=Pipeline assumes canonical CONTEXT feed profile.
+d@text/markdown<<PIPE
+**Ingestion Steps**:
+1. Validate namespace prefixes via ctx_lint.
+2. Filter capsules with cf>=0.6 and exclude ctx.N by default.
+3. Emit feed profile sorted by priority and ts.
+4. Persist per-run digest for audit trail.
+PIPE
+
+[cap t_execute_variant]
+t=ctx.T
+p=8
+cf=0.880
+ts=2025-10-28T18:29:30Z
+ttl=P30D
+src=ops:execution
+lang=en
+tags=trace,workflow
+in=t_plan_variant,k_ctx_graph_schema,@01jdzr7v95kq7b9n91hza7ap8d#i_token_saving
+out=i_ab_result
+op=ctx.execute
+cost.kind=ctx.ms
+cost.val=842.000
+d=Ran variant beta against baseline using namespace-aware retrieval.
+
+[cap t_plan_variant]
+t=ctx.T
+p=8
+cf=0.910
+ts=2025-10-28T18:26:00Z
+ttl=P30D
+src=ops:planning
+lang=en
+tags=trace,workflow
+note=Prepare evaluation sequence before execution.
+in=L"objective\=compare variant-beta",s_ingest_pipeline
+out=t_execute_variant
+op=ctx.plan
+cost.kind=ctx.tokens
+cost.val=96
+d=Planned experiment harness using CONTEXT/1.2 feed generation.
+
+[trace ch_variant_eval]
+goal=i_ab_result
+head=t_plan_variant
+halt=t_execute_variant
+status=ctx.ok
+ts=2025-10-28T18:29:55Z
+tags=analysis,reasoning
+
+[rel]
+r=i_ab_result|ctx.cites|l_spec_anchor
+r=i_ab_result|ctx.supports|@01jdzr7v95kq7b9n91hza7ap8d#i_token_saving
+r=k_ctx_graph_schema|ctx.supports|t_execute_variant|w=0.8|ts=2025-10-28T18:29:00Z
+r=n_noise_packet|ctx.clarifies|i_ab_result|w=0.2
+r=s_ingest_pipeline|ctx.applied_by|t_plan_variant
+r=t_execute_variant|ctx.derived_from|k_ctx_graph_schema
+r=t_plan_variant|ctx.applied_by|t_execute_variant
+
+[footer]
+digest=sha256
+digest-base16=dcf4120b720207b8d54f308abfe0a799f3f50ad2f474ea99059066f647f5f64d

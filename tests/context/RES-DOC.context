@@ -1,0 +1,179 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+ops=ops:
+doc=http://example.org/doc/
+
+[ns-governance]
+ctx.status=locked
+collision.policy=reject
+
+[meta]
+doc=01k8p0sx1jgc080da02df5aqxq
+author=golden-suite
+date=2025-10-28T19:20:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+resolver.scheme=ctx
+resolver.policy=fallback-once
+sig.policy=k-of-n
+sig.k=1
+
+[resolution]
+resolver.order=cache,repo,wellknown
+resolver.schemes=ctx,https
+wellknown.domain=context.wellknown.io
+timeout.ms=5000
+
+[repo 1]
+uri=https://example.org/context
+priority=3
+
+[repo 2]
+uri=ipfs://bafyexample
+priority=7
+
+[policy.cf]
+id=cf.platt.v1
+kind=probability
+model=ctx.platt
+params=a=-1.2;b=2.4
+domain=[0,1]
+monotone=true
+mapping=global
+
+[policy.ttl]
+id=ttl.v1
+states=fresh,stale,expired
+grace=P14D
+stale=P60D
+expired.action=exclude
+
+[att manifest]
+mime=text/plain
+bytes=42
+sha256=1111111111111111111111111111111111111111111111111111111111111111
+uri=https://example.org/context/manifest.txt
+
+[att payload]
+mime=application/json
+bytes=19
+sha256=2222222222222222222222222222222222222222222222222222222222222222
+uri=https://example.org/context/payload.json
+
+[cap k_local_fact]
+t=ctx.K
+p=5
+cf=0.750
+cf.src=cf.platt.v1
+ts=2025-10-28T19:00:00Z
+ts.event=2025-10-28T18:59:00Z
+ts.ingest=2025-10-28T19:01:00Z
+ttl=P180D
+src=doc:local
+lang=en
+script=Latn
+kind=ctx.state
+tags=example,test
+note=Local fact inside resolver scenario.
+provenance.agent=tool
+provenance.model=ctx-lint
+provenance.temp=0.0
+license.id=CC-BY-4.0
+license.uri=https://creativecommons.org/licenses/by/4.0/
+d=Resolver test local capsule.
+
+[cap k_remote_fact]
+t=ctx.K
+p=7
+cf=0.880
+cf.src=cf.platt.v1
+ts=2025-10-28T19:05:00Z
+ttl=P90D
+src=doc:remote
+lang=en
+tags=example,remote
+safe.hint=trusted
+index.hint=light
+index.fields=tags,d
+index.weight=0.9
+provenance.agent=human
+provenance.model=manual
+license.id=Proprietary
+license.uri=https://example.org/license
+d=Referenced capsule expected via repo resolution.
+
+[cap t_plan]
+t=ctx.T
+p=6
+cf=0.820
+ts=2025-10-28T19:06:00Z
+ttl=P30D
+src=ops:planner
+lang=en
+tags=trace
+op=ctx.plan
+in=k_local_fact
+out=t_exec
+cost.kind=ctx.tokens
+cost.val=32
+err=
+d=Plan step for resolver check.
+
+[cap t_exec]
+t=ctx.T
+p=7
+cf=0.830
+ts=2025-10-28T19:06:30Z
+ttl=P30D
+src=ops:executor
+lang=en
+tags=trace
+op=ctx.execute
+in=t_plan,@01jdzr7v95kq7b9n91hza7ap8d#k_remote_fact
+out=k_result
+cost.kind=ctx.tokens
+cost.val=48
+err=
+privacy.class=none
+d=Execute step referencing external capsule.
+
+[cap k_result]
+t=ctx.K
+p=8
+cf=0.910
+ts=2025-10-28T19:07:00Z
+ttl=P120D
+src=ops:executor
+lang=en
+tags=example,result
+safe.hint=trusted
+index.hint=full
+index.fields=tags
+d=Result combining local and external knowledge.
+
+[trace ch_resolve]
+goal=k_result
+head=t_plan
+halt=t_exec
+status=ctx.ok
+ts=2025-10-28T19:07:30Z
+tags=reasoning,test
+
+[rel]
+r=k_local_fact|ctx.supports|k_result|w=0.4|ts=2025-10-28T19:07:05Z
+r=t_plan|ctx.applied_by|t_exec
+r=t_exec|ctx.derived_from|@01jdzr7v95kq7b9n91hza7ap8d#k_remote_fact
+r=k_result|ctx.cites|@sha256:abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd
+
+[footer]
+digest=sha256
+digest-base16=345c56a12b36d4b9914fb3a24a6899cacfbd15f27fbd0c4bca8ffcaf45488b58
+sig.count=1
+sig.1.alg=ed25519
+sig.1.key=did:key:zExampleSigner
+sig.1.epoch=1
+sig.1.ts=2025-10-28T19:10:00Z
+sig.1.base64=MEUCIQDExampleSignature

@@ -1,0 +1,50 @@
+You are acting as a senior SRE evaluating context format Variant A for the Aquila ingestion pipeline incident.
+Task: Using ONLY the context payload supplied between <context></context>, output a JSON object with:
+- "patch_lines": array of three strings, one per configuration line to apply.
+- "justification": single sentence (<40 words) that must cite both terms "telemetry-burst" and "firmware-v3.18".
+Constraints:
+- Reuse context tokens faithfully; do not invent new config keys.
+- Ignore any deprecated or rumor content.
+- If the necessary data is missing, reply with null values.
+<context>
+@DCTX/1
+# agent=experiment-runner
+# created=2025-10-28T14:30:00Z
+# id=01J3836EH8S3BD1P4Q9XZC9A6J
+# locale=en
+* id=01J3836EH8S6K1P4Q9XZC9A6K ts=2025-10-25T07:12:40Z ty=telemetry pr=6 src=log:ingest-aquila
++ tags=metrics,noise
+> stage3_throughput=41.2k eps; variance=17%; droppage=3.7%;
+> window.max_skew_ms=2200 (stale baseline); watermark.offset_ms=700 (stale);
+> Note: auto-tuner disabled since 2024-09-12.
+* id=01J3836EH8S9M1P4Q9XZC9A6L ts=2025-10-26T02:55:10Z ty=remediation pr=8 src=kb:legacy
++ status=deprecated
++ tags=legacy,deprecated
+> Legacy playbook suggests widening skew to 3200ms and lowering quorum to 3 nodes. Marked unsafe for firmware-v3.15+.
+* id=01J3836EH8SCQ1P4Q9XZC9A6M ts=2025-10-27T11:03:22Z ty=metric pr=7 src=telemetry:burst
++ tags=telemetry-burst,correlator
+> 2025-10-27T10:59Z: telemetry-burst detected on collectors 17/43 after firmware-v3.18 deployment.
+> Symptoms: stage3 watermark lag spikes to 950ms; quorum oscillation between 3-4 nodes.
+* id=01J3836EH8SFV1P4Q9XZC9A6N ts=2025-10-27T12:40:05Z ty=analysis pr=3 src=postmortem:draft
++ tags=incident,aquila,root-cause
+> Firmware-v3.18 disabled jitter dampener causing skew overshoot when telemetry-burst occurs.
+> Safe window max skew is bounded to 1200ms with new jitter profile; watermark offset must reduce to 350ms.
+> With firmware-v3.18, quorum requires min 5 nodes to avoid vote flapping.
+> Deprecated remediation still present in KB; ignore it.
+* id=01J3836EH8SJV1P4Q9XZC9A6P ts=2025-10-27T14:15:44Z ty=release-note pr=4 src=release:firmware-v3.18
++ tags=firmware-v3.18,collector
+> Release note: jitter dampener removed; requires stage3.window tuning per appendix C.
+* id=01J3836EH8SMZ1P4Q9XZC9A6Q ts=2025-10-27T16:02:09Z ty=guide pr=5 src=appendix:stage3
++ tags=appendix,configuration
+> Appendix C (hidden): update analytics.streams.ingest.stage3.* parameters post v3.18.
+> Required patch lines:
+> analytics.streams.ingest.stage3.window.max_skew_ms=1200
+> analytics.streams.ingest.stage3.watermark.offset_ms=350
+> analytics.streams.replicator.quorum.min_nodes=5
+> Apply during maintenance window only.
+* id=01J3836EH8SP31P4Q9XZC9A6R ts=2025-10-27T19:48:31Z ty=decision pr=2 src=warroom:minutes
++ tags=decision,action-item
+> War room consensus: adopt appendix C tuning, reject legacy widening playbook.
+> Success criteria: restore 98% throughput within 15 minutes; verify telemetry-burst suppression.
+= sha256:ac9c4af82d5656a22515d51fcdccb9b25f8d4948e63493e90ce75b95df3a4bdb
+</context>

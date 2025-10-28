@@ -1,0 +1,47 @@
+You are acting as a senior SRE evaluating context format Variant B (DCTX-Compact) with additional contradictory noise.
+Task: Using ONLY the context payload supplied between <context></context>, output a JSON object with:
+- "patch_lines": array of three strings, one per configuration line to apply.
+- "justification": single sentence (<40 words) that must cite both terms "telemetry-burst" and "firmware-v3.18".
+Constraints:
+- Treat attributes `status:unverified` and `status:unsupported` as noise.
+- Do not hallucinate values; use nulls if information is incomplete.
+<context>
+@DCTX-C/1
+#agent=experiment-runner
+#created=2025-10-28T14:35:00Z
+#id=01J383M6K6S3BD1P4Q9XZC9A6J
+#locale=en
+*id=01J383M6K6S6K1P4Q9XZC9A6K;ts=2025-10-25T07:12:40Z;ty=telemetry;pr=6;src=log:ingest-aquila
++tags[metrics|noise|unfiltered]
+> stage3_throughput=41.2k eps; window.max_skew_ms=2200 (stale); watermark.offset_ms=700 (stale).
+> auto_tuner=off since 2024-09-12; jitter_dampener=false.
+*id=01J383M6K6S9M1P4Q9XZC9A6L;ts=2025-10-26T02:55:10Z;ty=remediation;pr=8;src=kb:legacy
++status:deprecated
++tags[legacy|deprecated]
+> Legacy note: widen skew to 3200ms, quorum 3 nodes. Unsafe once firmware version >= v3.15.
+*id=01J383M6K6SCQ1P4Q9XZC9A6M;ts=2025-10-27T11:03:22Z;ty=metric;pr=7;src=telemetry:burst
++tags[telemetry-burst|correlator]
+> telemetry-burst 2025-10-27T10:59Z on 17/43 collectors after firmware-v3.18. Watermark lag 950ms; quorum swing 3-4 nodes.
+*id=01J383M6K6SFV1P4Q9XZC9A6N;ts=2025-10-27T12:40:05Z;ty=analysis;pr=2;src=postmortem:draft
++tags[incident|aquila|root-cause]
++hint:firmware-v3.18
+> Firmware-v3.18 removes jitter dampener. Safe window max skew=1200ms; watermark offset=350ms; quorum min nodes=5.
+*id=01J383M6K6SJV1P4Q9XZC9A6P;ts=2025-10-27T14:15:44Z;ty=release-note;pr=4;src=release:firmware-v3.18
++tags[firmware-v3.18|collector]
+> Appendix C lists stage3 window retune requirements for telemetry-burst resilience.
+*id=01J383M6K6SMZ1P4Q9XZC9A6Q;ts=2025-10-27T16:02:09Z;ty=guide;pr=3;src=appendix:stage3
++bundle{analytics.streams.ingest.stage3.window.max_skew_ms=1200|analytics.streams.ingest.stage3.watermark.offset_ms=350|analytics.streams.replicator.quorum.min_nodes=5}
+> Apply appendix C patch during maintenance window only.
+*id=01J383M6K6SP31P4Q9XZC9A6R;ts=2025-10-27T19:48:31Z;ty=decision;pr=1;src=warroom:minutes
++tags[decision|action-item]
+> War room confirms appendix C tuning and rejection of legacy widening playbook. Goal: 98 percent throughput in 15 minutes.
+*id=01J3848Q6NS4X1P4Q9XZC9A7S;ts=2025-10-27T20:05:12Z;ty=playbook;pr=4;src=kb:hotfix
++status:unverified
++tags[playbook|contradiction]
+> Hotfix candidate: set analytics.streams.ingest.stage3.window.max_skew_ms=1800 and analytics.streams.ingest.stage3.watermark.offset_ms=600 to absorb jitter.
+*id=01J3848Q6NS7Z1P4Q9XZC9A7T;ts=2025-10-27T21:14:03Z;ty=analysis;pr=3;src=ops:triage
++status:unsupported
++tags[triage|hypothesis]
+> Hypothesis: quorum can stay at 4 nodes; flagged unsupported until appendix C approval.
+=sha256:235d5e2364c324905e45b87b3688bc0e2a9a37de21b16393dd8e9645fe9b2e49
+</context>

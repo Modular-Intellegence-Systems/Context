@@ -1,0 +1,34 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p0zfjbgkt1xw56tt18r6ed
+author=lint-suite
+date=2025-10-28T19:38:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[att payload]
+mime=application/octet-stream
+bytes=4
+sha256=ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+
+[cap k_payload]
+t=ctx.K
+p=4
+cf=0.500
+ts=2025-10-28T19:37:00Z
+ttl=P7D
+src=ops:att
+lang=en
+tags=attachment,test
+d=^att:payload
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=0000000000000000000000000000000000000000000000000000000000000000

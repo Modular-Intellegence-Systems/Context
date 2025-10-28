@@ -1,0 +1,14 @@
+@CONTEXT/1.2 profile=feed canon=CTX-CANON/3
+c|i_token_saving|ctx.I|p=9|cf=0.830|ts=2025-10-28T18:00:00Z|ttl=P60D|lang=en|tags=insight,latency,token_budget|src=exp:ab-42|d=Explicit capsules with relations reduce prompt length by ~20% on multi-hop tasks.
+c|k_learning_rate|ctx.K|p=7|cf=0.920|ts=2025-10-28T17:58:00Z|ttl=P180D|lang=en|tags=ml,optimization,training|src=paper:adamw|d=Reducing the learning rate after plateaus improves validation loss by 3-7%.
+c|s_rag_pipeline|ctx.S|p=8|cf=0.900|ts=2025-10-28T17:59:00Z|ttl=P90D|lang=en|tags=procedure,rag|src=ops:rag|n=Procedure tuned for multi-hop QA.|d=^block:text/markdown:150
+1. Formulate retrieval intent.
+2. Retrieve top-k documents (k=6, λ=0.3).
+3. Compress snippets to 4-6 bullets.
+4. Synthesize answer with attribution.
+c|t_deduce|ctx.T|p=7|cf=0.880|ts=2025-10-28T18:00:06Z|ttl=P30D|lang=en|tags=trace|src=ops:rag|in=k_learning_rate,t_retrieve|out=i_token_saving|op=ctx.deduce|cost.kind=ctx.tokens|cost.val=128|d=Summarized fragments and produced the token-saving insight.
+c|t_retrieve|ctx.T|p=7|cf=0.900|ts=2025-10-28T18:00:05Z|ttl=P30D|lang=en|tags=trace|src=ops:rag|in=s_rag_pipeline|out=t_deduce|op=ctx.retrieve|cost.kind=ctx.tokens|cost.val=384|d=Fetched 6 relevant fragments.
+r|k_learning_rate|ctx.supports|i_token_saving|w=0.6|ts=2025-10-28T18:00:15Z
+r|s_rag_pipeline|ctx.clarifies|i_token_saving
+r|t_deduce|ctx.derived_from|k_learning_rate
+r|t_retrieve|ctx.applied_by|t_deduce

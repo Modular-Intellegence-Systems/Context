@@ -1,0 +1,173 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+ops=ops:
+
+[meta]
+doc=01k8p0z2yvecbdjyk6mxcb0dqs
+author=golden-suite
+date=2025-10-28T19:30:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[policy.cf]
+id=cf.identity
+kind=probability
+model=ctx.identity
+domain=[0,1]
+monotone=true
+mapping=global
+
+[cap k_input_a]
+t=ctx.K
+p=6
+cf=0.750
+cf.src=cf.identity
+ts=2025-10-28T19:20:00Z
+ttl=P60D
+src=ops:source
+lang=en
+tags=branching,input
+d=Input branch A.
+
+[cap k_input_b]
+t=ctx.K
+p=6
+cf=0.755
+cf.src=cf.identity
+ts=2025-10-28T19:20:05Z
+ttl=P60D
+src=ops:source
+lang=en
+tags=branching,input
+d=Input branch B.
+
+[cap t_branch]
+t=ctx.T
+p=8
+cf=0.820
+cf.src=cf.identity
+ts=2025-10-28T19:21:00Z
+ttl=P30D
+src=ops:planner
+lang=en
+tags=trace
+op=ctx.branch
+in=k_input_a,k_input_b
+out=t_step_a,t_step_b
+cost.kind=ctx.tokens
+cost.val=16
+
+[cap t_step_a]
+t=ctx.T
+p=7
+cf=0.810
+cf.src=cf.identity
+ts=2025-10-28T19:21:10Z
+ttl=P30D
+src=ops:worker
+lang=en
+tags=trace
+op=ctx.execute
+in=t_branch,k_input_a
+out=k_partial_a
+cost.kind=ctx.tokens
+cost.val=12
+
+[cap t_step_b]
+t=ctx.T
+p=7
+cf=0.805
+cf.src=cf.identity
+ts=2025-10-28T19:21:12Z
+ttl=P30D
+src=ops:worker
+lang=en
+tags=trace
+op=ctx.execute
+in=t_branch,k_input_b
+out=k_partial_b
+cost.kind=ctx.tokens
+cost.val=12
+
+[cap k_partial_a]
+t=ctx.K
+p=6
+cf=0.800
+cf.src=cf.identity
+ts=2025-10-28T19:21:20Z
+ttl=P45D
+src=ops:worker
+lang=en
+tags=branching,partial
+d=Partial result A.
+
+[cap k_partial_b]
+t=ctx.K
+p=6
+cf=0.795
+cf.src=cf.identity
+ts=2025-10-28T19:21:22Z
+ttl=P45D
+src=ops:worker
+lang=en
+tags=branching,partial
+d=Partial result B.
+
+[cap t_merge]
+t=ctx.T
+p=8
+cf=0.840
+cf.src=cf.identity
+ts=2025-10-28T19:22:00Z
+ttl=P30D
+src=ops:aggregator
+lang=en
+tags=trace
+op=ctx.merge
+in=t_step_a,t_step_b,k_partial_a,k_partial_b
+out=k_final
+cost.kind=ctx.tokens
+cost.val=18
+
+[cap k_final]
+t=ctx.K
+p=9
+cf=0.900
+cf.src=cf.identity
+ts=2025-10-28T19:22:30Z
+ttl=P120D
+src=ops:aggregator
+lang=en
+tags=branching,result
+safe.hint=trusted
+index.hint=full
+index.fields=tags,d
+d=Final result after merge.
+
+[trace ch_branch]
+goal=k_final
+head=t_branch
+halt=t_merge
+status=ctx.ok
+ts=2025-10-28T19:23:00Z
+tags=branch-test,reasoning
+tags=branch-test,reasoning
+
+[rel]
+r=k_input_a|ctx.supports|k_partial_a
+r=k_input_b|ctx.supports|k_partial_b
+r=t_branch|ctx.applied_by|t_step_a
+r=t_branch|ctx.applied_by|t_step_b
+r=t_step_a|ctx.applied_by|t_merge
+r=t_step_b|ctx.applied_by|t_merge
+r=t_merge|ctx.derived_from|k_partial_a
+r=t_merge|ctx.derived_from|k_partial_b
+r=k_final|ctx.clarifies|k_input_a
+
+[footer]
+digest=sha256
+digest-base16=ea147948b9356cf67eba81224606f7e25ecdcdf935cb419c316933c61eb6dbae
+sig.count=0

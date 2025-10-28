@@ -1,0 +1,58 @@
+{
+  "gpt-5-codex": {
+    "A": {
+      "tokens": 12047,
+      "real_s": 16.83,
+      "mem_kb": 53128,
+      "status": "ok"
+    },
+    "B": {
+      "tokens": 11775,
+      "real_s": 10.2,
+      "mem_kb": 53116,
+      "status": "ok"
+    },
+    "C": {
+      "tokens": 11188,
+      "real_s": 11.77,
+      "mem_kb": 53688,
+      "status": "ok"
+    }
+  },
+  "gpt-5-nano-2025-08-07": {
+    "A": {
+      "prompt_tokens": 5344,
+      "completion_tokens": 256,
+      "total_tokens": 5600,
+      "finish_reason": "length",
+      "content_present": false,
+      "content": ""
+    }
+  },
+  "gpt-3.5-turbo-0125": {
+    "A": {
+      "prompt_tokens": 5328,
+      "completion_tokens": 100,
+      "total_tokens": 5428,
+      "finish_reason": "stop",
+      "content_present": true,
+      "content": "{\n  \"patch_lines\": [\n    \"analytics.streams.ingest.stage3.window.max_skew_ms=1200\",\n    \"analytics.streams.ingest.stage3.watermark.offset_ms=350\",\n    \"analytics.streams.replicator.quorum.min_nodes=5\"\n  ],\n  \"justification\": \"Telemetry-burst conditions post firmware-v3.18 require window max skew 1200ms, watermark offset 350ms, quorum minimum 5 nodes.\"\n}"
+    },
+    "B": {
+      "prompt_tokens": 5579,
+      "completion_tokens": 86,
+      "total_tokens": 5665,
+      "finish_reason": "stop",
+      "content_present": true,
+      "content": "{\n  \"patch_lines\": [\n    \"analytics.streams.ingest.stage3.window.max_skew_ms=1200\",\n    \"analytics.streams.ingest.stage3.watermark.offset_ms=350\",\n    \"analytics.streams.replicator.quorum.min_nodes=5\"\n  ],\n  \"justification\": \"The telemetry-burst incident necessitates adjusting the configuration lines for firmware-v3.18 compliance.\"\n}"
+    },
+    "C": {
+      "prompt_tokens": 4908,
+      "completion_tokens": 92,
+      "total_tokens": 5000,
+      "finish_reason": "stop",
+      "content_present": true,
+      "content": "```json\n{\n    \"patch_lines\": [\n        \"analytics.streams.ingest.stage3.window.max_skew_ms=1200\",\n        \"analytics.streams.ingest.stage3.watermark.offset_ms=350\",\n        \"analytics.streams.replicator.quorum.min_nodes=5\"\n    ],\n    \"justification\": \"Firmware-v3.18 disabled jitter dampener leading to skew overshoot during telemetry-burst conditions.\"\n}\n```"
+    }
+  }
+}

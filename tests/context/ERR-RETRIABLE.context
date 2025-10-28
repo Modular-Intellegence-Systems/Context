@@ -1,0 +1,57 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p18ns1f3ty0kn6mwam2z3e
+author=golden-suite
+date=2025-10-28T19:45:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap t_step]
+t=ctx.T
+p=5
+cf=0.600
+ts=2025-10-28T19:40:00Z
+ttl=P7D
+src=ops:tool
+lang=en
+tags=trace
+op=ctx.execute
+in=
+out=k_bad
+cost.kind=ctx.tokens
+cost.val=10
+err.class=net
+err.code=NET_TIMEOUT
+err.retriable=true
+err.cause=L"connect ECONNREFUSED"
+err.at=t_step
+
+[cap k_bad]
+t=ctx.K
+p=3
+cf=0.200
+ts=2025-10-28T19:40:05Z
+ttl=P7D
+src=ops:tool
+lang=en
+tags=error
+d=Failed output due to retriable error.
+
+[trace ch_err]
+goal=k_bad
+head=t_step
+status=ctx.fail
+ts=2025-10-28T19:40:10Z
+tags=error
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=c6982dddb22c0e07a415952254b0a86174bf9d68383631c13cf303cae4b61267
+sig.count=0
