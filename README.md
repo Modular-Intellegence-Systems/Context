@@ -1,43 +1,56 @@
 # CONTEXT/1.2 Workspace
 
-This repository hosts the working implementation of the CONTEXT/1.2 format and linting tooling. It includes the normative specification, canonical examples, automated golden tests, and CI configuration to guarantee deterministic handling of capsules and relations.
+> **Deterministic capsule format** для Flagship-агентов: единый язык общения между Reasoning Core, Memory Brain и Tooling Mesh.
 
-## Contents
+![CI – Golden Suite](https://github.com/Modular-Intellegence-Systems/Context/actions/workflows/goldens.yml/badge.svg) ![Spec – CTX/1.2](https://img.shields.io/badge/spec-CTX--1.2-blue)
 
-- `docs/context_spec_1_2.md` – normative specification (@CONTEXT/1.2 + CTX-CANON/3).
-- `docs/testing.md` – instructions for running and extending the golden test suite.
-- `.agents/tools/ctx_lint.py` – reference parser/linter used in all validations.
-- `tests/context/` + `tests/outcomes/` – golden `.context` files with expected results (positive & negative scenarios).
-- `.github/workflows/goldens.yml` – GitHub Actions workflow running the golden suite on each push/PR.
+**Цель.** Гарантировать, что каждая `.context` капсула описана спецификацией и проверена golden-тестами, прежде чем попадёт в продуктивные пайплайны Modular Intellegence Systems.
 
-## Getting Started
+## Repository Map
+
+| Путь | Назначение |
+| --- | --- |
+| `docs/context_spec_1_2.md` | Нормативная спецификация CONTEXT/1.2 + CTX-CANON/3. |
+| `docs/testing.md` | Руководство по запуску и расширению golden-наборов. |
+| `.agents/tools/ctx_lint.py` | Эталонный парсер/линтер, используемый во всех проверках. |
+| `tests/context/` | Позитивные и негативные `.context` сценарии. |
+| `tests/outcomes/` | Эталонные выходные данные для golden-тестов. |
+| `.github/workflows/goldens.yml` | CI, запускающий полный golden-suite на каждый push/PR. |
+
+## Quickstart
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt  # if such file exists; else ensure python>=3.11
+pip install -r requirements.txt  # при отсутствии файла — убедитесь, что python>=3.11
 python tests/run_goldens.py
 ```
 
-The command must exit with status `0`. Any discrepancy between actual and expected outcomes indicates a regression in the format or tooling.
+Команда должна завершиться `0`. Любое расхождение между фактическим и ожидаемым выводом фиксирует регрессию и блокирует merge.
 
-## Adding New Test Cases
+## Golden Suite & CI
+- Workflow `goldens.yml` стартует на каждый push/PR и валидирует все сценарии.
+- Локально запускай `python tests/run_goldens.py` до публикации коммитов.
+- Новые конструкции спецификации сопровождаются обновлением golden-наборов и документации.
 
-1. Create a `.context` file under `tests/context/`.
-2. Run `python tests/run_goldens.py` to obtain the digest or error metadata.
-3. Add the expected outcome in `tests/outcomes/<name>.json`.
-4. Commit the new files alongside any required changes in `ctx_lint.py` or docs.
+## Добавление новых сценариев
+1. Создай новую `.context` капсулу в `tests/context/` и дай осмысленное имя.
+2. Выполни `python tests/run_goldens.py` — получишь digest или описание ошибки.
+3. Зафиксируй ожидаемый результат в `tests/outcomes/<name>.json`.
+4. Обнови `docs/context_spec_1_2.md`/`docs/testing.md`, если поведение изменилось.
+5. Отправь PR с трассой проверки, ссылкой на ADR (если применимо) и скриншотом зелёного CI.
 
-## CI Enforcement
-
-The GitHub Actions workflow `goldens.yml` executes the golden suite automatically. Pull requests failing this check must be fixed before merging. This ensures that every change preserves canon determinism and lint diagnostics.
+## Status & Next Up
+- ✅ Покрыты: resolver metadata, chunk payloads, TTL, confidence models, подписи (rotation/quorum), safe-hints, ошибки TAB/attachment hash mismatch/external relation, JSON round-trip placeholder.
+- 🔄 В работе: pack/unpack, валидация тегов, внешние дескрипторы, Registry для публичного обмена.
+- 🎯 Цель квартала: расширить негативные сценарии и протокол аудита конвертеров.
 
 ## Contributing
+- Следуй `AGENTS.md` и Flagship-стандарту: 0 mocks, покрытие ≥85%, cyclomatic ≤10.
+- Каждый PR сопровождается design brief + evidence (лог тестов, ссылки на ADR).
+- Обсуждения и вопросы — в GitHub Discussions организации.
 
-- Extend the specification via `docs/context_spec_1_2.md` (include Annex references when adding new constructs).
-- Update the golden suite whenever specification changes introduce new behaviour.
-- Keep the documentation (spec, testing guide, AGENTS index) consistent with code changes.
-
-## Status
-
-The current golden suite covers: resolver metadata, chunk payloads, TTL policies, confidence models, signatures (rotation and quorum), safe-hints, negative error scenarios (TAB, attachment hash mismatch, external relation without resolver), and JSON round-trip placeholder. Remaining matrix items (pack/unpack, tag validation, external descriptor verification) are slated for future iterations.
+## Support
+- Issues: предпочитаемые вопросы/доработки.
+- Контакт: magraytlinov@gmail.com — core-команда отвечает в течение 24 часов будних дней.
+- Репозиторий `Context` закреплён на главной странице Modular Intellegence Systems как обязательный вход в модульную экосистему.
