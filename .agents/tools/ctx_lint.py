@@ -56,6 +56,16 @@ Payload = Union[InlinePayload, BlockPayload, AttachmentPayload, None]
 
 
 @dataclass
+class ChunkPart:
+    mime: str
+    total_bytes: int
+    index: int
+    chunk_len: int
+    sha256: str
+    data: bytes
+
+
+@dataclass
 class Attachment:
     name: str
     mime: str
@@ -266,6 +276,7 @@ class FeedCapsule:
     license: Dict[str, str] = field(default_factory=dict)
     enc: Dict[str, str] = field(default_factory=dict)
     privacy_class: Optional[str] = None
+    chunks: List[ChunkPart] = field(default_factory=list)
 
 
 @dataclass
@@ -953,7 +964,8 @@ def parse_capsule(cid: str, body: List[str], namespaces: Dict[str, str]) -> Caps
             payload = InlinePayload(unescape_value(inline_value))
 
     allowed_keys = {
-        't','p','cf','cf.src','ts','ts.event','ts.ingest','ts.logical','ttl','src','lang','dir','script','kind','tags','note','in','out','op','cost.kind','cost.val','err','d','safe.hint','index.hint','index.fields','index.weight','privacy.class'
+        't','p','cf','cf.src','ts','ts.event','ts.ingest','ts.logical','ttl','src','lang','dir','script','kind','tags','note','in','out','op','cost.kind','cost.val','err','d','safe.hint','index.hint','index.fields','index.weight','privacy.class',
+        'err.class','err.code','err.retriable','err.cause','err.at'
     }
     dynamic_prefixes = ('x.', 'provenance.', 'code.', 'license.', 'enc.')
     for key in fields.keys():
@@ -970,7 +982,12 @@ def parse_capsule(cid: str, body: List[str], namespaces: Dict[str, str]) -> Caps
 
     payload = payload or None
 
-    return Capsule(
+    extra_fields: Dict[str, str] = {}
+    for key in ['err.class','err.code','err.retriable','err.cause','err.at']:
+        if key in fields:
+            extra_fields[key] = unescape_value(fields[key][0])
+
+    capsule = Capsule(
         cid=cid,
         t=t_value,
         p=p_int,
@@ -1005,6 +1022,8 @@ def parse_capsule(cid: str, body: List[str], namespaces: Dict[str, str]) -> Caps
         privacy_class=privacy_class,
         payload=payload,
     )
+    capsule.extras.update(extra_fields)
+    return capsule
 
 
 def parse_trace(tid: str, body: List[str], namespaces: Dict[str, str]) -> Trace:
@@ -1178,6 +1197,11 @@ def validate_human_document(
             ensure(rel.subj in cid_set, f"relation subject {rel.subj} missing")
         if CID_RE.match(rel.obj):
             ensure(rel.obj in cid_set, f"relation object {rel.obj} missing")
+        if rel.subj.startswith('@') or rel.obj.startswith('@'):
+            ensure(
+                resolution is not None or repos,
+                "external relation requires resolver or repository metadata",
+            )
 
 
 def build_canonical_human(doc: HumanDocument) -> str:
@@ -1395,8 +1419,15 @@ def parse_feed_document(path: Path, lines: List[str], raw_lines: List[str]) -> F
             continue
         if stripped.startswith('c|'):
             capsule, next_index = parse_feed_capsule(raw_lines, i)
-            ensure(capsule.cid not in capsules, f"duplicate capsule id {capsule.cid}")
-            capsules[capsule.cid] = capsule
+            existing = capsules.get(capsule.cid)
+            if existing:
+                ensure(existing.payload is None and capsule.payload is None, f"capsule {capsule.cid}: cannot mix chunk with inline payload")
+                ensure(existing.t == capsule.t and existing.p == capsule.p and existing.cf == capsule.cf and existing.ts == capsule.ts and existing.ttl == capsule.ttl and existing.lang == capsule.lang and existing.tags == capsule.tags and existing.src == capsule.src, f"capsule {capsule.cid}: metadata mismatch across chunks")
+                ensure(not capsule.notes, f"capsule {capsule.cid}: notes must be defined only in first chunk")
+                ensure(not capsule.inputs and not capsule.outputs and not capsule.op and not capsule.cost_kind and not capsule.cost_val and capsule.err is None, f"capsule {capsule.cid}: extra fields in chunk repetition")
+                existing.chunks.extend(capsule.chunks)
+            else:
+                capsules[capsule.cid] = capsule
             i = next_index
             continue
         if stripped.startswith('r|'):
@@ -1507,9 +1538,14 @@ def parse_feed_capsule(lines: List[str], index: int) -> Tuple[FeedCapsule, int]:
     privacy_class = field_data.get('privacy.class', [None])[0]
     if privacy_class:
         ensure(privacy_class in {'pii','psi','none'}, f"capsule {cid}: privacy.class invalid")
-    enc_map: Dict[str, str] = {}
+    enc_map: Dict[str, str] = {
+        key.split('.',1)[1]: values[0]
+        for key, values in field_data.items()
+        if key.startswith('enc.')
+    }
     payload_token = field_data['d'][0]
     payload: Payload
+    chunks: List[ChunkPart] = []
     next_index = index + 1
     if payload_token.startswith('^block:'):
         _, rest = payload_token.split(':', 1)
@@ -1532,12 +1568,33 @@ def parse_feed_capsule(lines: List[str], index: int) -> Tuple[FeedCapsule, int]:
         payload = BlockPayload(mime=mime, delimiter='', text=''.join(content_parts))
     elif payload_token.startswith('^att:'):
         payload = AttachmentPayload(name=payload_token[len('^att:'):])
+    elif payload_token.startswith('^chunk:'):
+        parts_chunk = payload_token.split(':')
+        ensure(len(parts_chunk) == 6, f"capsule {cid}: chunk descriptor requires mime:total:index:len:sha")
+        _, mime, total_str, index_str, len_str, sha_val = parts_chunk
+        ensure(total_str.isdigit(), f"capsule {cid}: chunk total must be integer")
+        total_bytes = int(total_str)
+        ensure(index_str.isdigit(), f"capsule {cid}: chunk index must be integer")
+        chunk_index = int(index_str)
+        ensure(len_str.isdigit(), f"capsule {cid}: chunk length must be integer")
+        chunk_len = int(len_str)
+        ensure(re.fullmatch(r"[0-9a-f]{64}", sha_val) is not None, f"capsule {cid}: chunk sha invalid")
+        ensure(next_index < len(lines), f"capsule {cid}: chunk data missing")
+        chunk_line = lines[next_index]
+        chunk_data = chunk_line.rstrip('\n')
+        ensure(len(chunk_data.encode('utf-8')) == chunk_len, f"capsule {cid}: chunk length mismatch")
+        ensure(sha256(chunk_data.encode('utf-8')).hexdigest() == sha_val, f"capsule {cid}: chunk sha mismatch")
+        chunks.append(ChunkPart(mime=mime, total_bytes=total_bytes, index=chunk_index, chunk_len=chunk_len, sha256=sha_val, data=chunk_data.encode('utf-8')))
+        payload = None
+        next_index += 1
     else:
         payload = InlinePayload(unescape_value(payload_token))
     if t_value == 'ctx.T':
         ensure(inputs, f"capsule {cid}: trace capsule requires inputs")
         ensure(outputs, f"capsule {cid}: trace capsule requires outputs")
         ensure(op is not None, f"capsule {cid}: trace capsule requires op")
+    if enc_map:
+        ensure(payload is None and not chunks, f"capsule {cid}: enc.* cannot be combined with d or chunk")
     return FeedCapsule(
         cid=cid,
         t=t_value,
@@ -1572,6 +1629,7 @@ def parse_feed_capsule(lines: List[str], index: int) -> Tuple[FeedCapsule, int]:
         enc=enc_map,
         privacy_class=privacy_class,
         payload=payload,
+        chunks=chunks,
     ), next_index
 
 
@@ -1633,6 +1691,14 @@ def validate_feed_document(capsules: Dict[str, FeedCapsule], relations: List[Rel
         if isinstance(cap.payload, BlockPayload):
             byte_len = len(cap.payload.text.encode('utf-8'))
             ensure(byte_len > 0, f"capsule {cap.cid}: block payload must not be empty")
+        if cap.chunks:
+            ensure(cap.payload is None, f"capsule {cap.cid}: cannot mix chunk with inline payload")
+            indices = sorted(part.index for part in cap.chunks)
+            ensure(indices == list(range(len(indices))), f"capsule {cap.cid}: chunk indexes must be contiguous starting at 0")
+            total_expected = {part.total_bytes for part in cap.chunks}
+            ensure(len(total_expected) == 1, f"capsule {cap.cid}: inconsistent chunk total")
+            combined = b''.join(part.data for part in sorted(cap.chunks, key=lambda c: c.index))
+            ensure(len(combined) == next(iter(total_expected)), f"capsule {cap.cid}: chunk total mismatch")
     for rel in relations:
         if CID_RE.match(rel.subj):
             ensure(rel.subj in cid_set, f"relation subject {rel.subj} missing")
@@ -1655,7 +1721,7 @@ def build_canonical_feed(doc: FeedDocument) -> str:
     lines.append("@CONTEXT/1.2 profile=feed canon=CTX-CANON/3")
     for cid in sorted(doc.capsules.keys()):
         cap = doc.capsules[cid]
-        parts = [
+        base_parts = [
             'c',
             cid,
             cap.t,
@@ -1668,57 +1734,70 @@ def build_canonical_feed(doc: FeedDocument) -> str:
             f"src={escape_value(cap.src)}",
         ]
         if cap.cf_src:
-            parts.append(f"cf.src={cap.cf_src}")
+            base_parts.append(f"cf.src={cap.cf_src}")
         if cap.ts_event:
-            parts.append(f"ts.event={cap.ts_event}")
+            base_parts.append(f"ts.event={cap.ts_event}")
         if cap.ts_ingest:
-            parts.append(f"ts.ingest={cap.ts_ingest}")
+            base_parts.append(f"ts.ingest={cap.ts_ingest}")
         if cap.ts_logical:
-            parts.append(f"ts.logical={cap.ts_logical}")
+            base_parts.append(f"ts.logical={cap.ts_logical}")
         if cap.dir:
-            parts.append(f"dir={cap.dir}")
+            base_parts.append(f"dir={cap.dir}")
         if cap.script:
-            parts.append(f"script={cap.script}")
+            base_parts.append(f"script={cap.script}")
         if cap.kind:
-            parts.append(f"kind={cap.kind}")
-        for note in cap.notes:
-            parts.append(f"n={escape_value(note)}")
+            base_parts.append(f"kind={cap.kind}")
+        note_fields = [f"n={escape_value(note)}" for note in cap.notes]
         if cap.inputs:
-            parts.append(f"in={','.join(item.to_canonical() for item in cap.inputs)}")
+            base_parts.append(f"in={','.join(item.to_canonical() for item in cap.inputs)}")
         if cap.outputs:
-            parts.append(f"out={','.join(cap.outputs)}")
+            base_parts.append(f"out={','.join(cap.outputs)}")
         if cap.op:
-            parts.append(f"op={cap.op}")
+            base_parts.append(f"op={cap.op}")
         if cap.cost_kind and cap.cost_val:
-            parts.append(f"cost.kind={cap.cost_kind}")
-            parts.append(f"cost.val={cap.cost_val}")
+            base_parts.append(f"cost.kind={cap.cost_kind}")
+            base_parts.append(f"cost.val={cap.cost_val}")
         if cap.err:
-            parts.append(f"err={escape_value(cap.err)}")
+            base_parts.append(f"err={escape_value(cap.err)}")
         if cap.safe_hint:
-            parts.append(f"safe.hint={cap.safe_hint}")
+            base_parts.append(f"safe.hint={cap.safe_hint}")
         if cap.index_hint:
-            parts.append(f"index.hint={cap.index_hint}")
+            base_parts.append(f"index.hint={cap.index_hint}")
         if cap.index_fields:
-            parts.append(f"index.fields={','.join(cap.index_fields)}")
+            base_parts.append(f"index.fields={','.join(cap.index_fields)}")
         if cap.index_weight:
-            parts.append(f"index.weight={cap.index_weight}")
+            base_parts.append(f"index.weight={cap.index_weight}")
         for key in sorted(cap.provenance.keys()):
-            parts.append(f"provenance.{key}={escape_value(cap.provenance[key])}")
+            base_parts.append(f"provenance.{key}={escape_value(cap.provenance[key])}")
         for key in sorted(cap.code.keys()):
             for val in cap.code[key]:
-                parts.append(f"code.{key}={escape_value(val)}")
+                base_parts.append(f"code.{key}={escape_value(val)}")
         for key in sorted(cap.license.keys()):
-            parts.append(f"license.{key}={escape_value(cap.license[key])}")
+            base_parts.append(f"license.{key}={escape_value(cap.license[key])}")
         if cap.privacy_class:
-            parts.append(f"privacy.class={cap.privacy_class}")
+            base_parts.append(f"privacy.class={cap.privacy_class}")
         if cap.enc:
             for key in ['alg','keyref','iv','tag','ct']:
                 if key in cap.enc:
-                    parts.append(f"enc.{key}={cap.enc[key]}")
-        if isinstance(cap.payload, InlinePayload):
+                    base_parts.append(f"enc.{key}={cap.enc[key]}")
+        if cap.chunks:
+            for idx, chunk in enumerate(sorted(cap.chunks, key=lambda c: c.index)):
+                parts = list(base_parts)
+                if idx > 0:
+                    parts = [p for p in parts if not p.startswith('n=')]
+                else:
+                    parts.extend(note_fields)
+                parts.append(f"d=^chunk:{chunk.mime}:{chunk.total_bytes}:{chunk.index}:{chunk.chunk_len}:{chunk.sha256}")
+                lines.append('|'.join(parts))
+                lines.append(chunk.data.decode('utf-8'))
+        elif isinstance(cap.payload, InlinePayload):
+            parts = list(base_parts)
+            parts.extend(note_fields)
             parts.append(f"d={escape_value(cap.payload.value)}")
             lines.append('|'.join(parts))
         elif isinstance(cap.payload, BlockPayload):
+            parts = list(base_parts)
+            parts.extend(note_fields)
             byte_len = len(cap.payload.text.encode('utf-8'))
             parts.append(f"d=^block:{cap.payload.mime}:{byte_len}")
             lines.append('|'.join(parts))
@@ -1728,6 +1807,8 @@ def build_canonical_feed(doc: FeedDocument) -> str:
             else:
                 lines.append('')
         elif isinstance(cap.payload, AttachmentPayload):
+            parts = list(base_parts)
+            parts.extend(note_fields)
             parts.append(f"d=^att:{cap.payload.name}")
             lines.append('|'.join(parts))
     for rel in sorted(doc.relations, key=lambda r: (r.subj, r.pred, r.obj, r.weight or '', r.ts or '')):

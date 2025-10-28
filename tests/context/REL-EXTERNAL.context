@@ -1,0 +1,31 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p57f1jshm1seg8ta5z50wm
+author=golden-suite
+date=2025-10-28T21:00:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_local]
+t=ctx.K
+p=4
+cf=0.800
+ts=2025-10-28T20:59:00Z
+ttl=P90D
+src=ops:local
+lang=en
+tags=external,test
+d=Local capsule referencing external relation without resolver.
+
+[rel]
+r=k_local|ctx.supports|@01k8p59hmgnbh1fghq3n8j5dv6#k_remote
+
+[footer]
+digest=sha256
+digest-base16=0000000000000000000000000000000000000000000000000000000000000000
+sig.count=0

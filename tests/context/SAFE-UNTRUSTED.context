@@ -1,0 +1,33 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p26863zkkmq2jqmsehpfjt
+author=golden-suite
+date=2025-10-28T20:05:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_prompt]
+t=ctx.K
+p=4
+cf=0.700
+ts=2025-10-28T20:00:00Z
+ttl=P30D
+src=ops:ingest
+lang=en
+tags=prompt,unsafe
+safe.hint=untrusted
+d@text/markdown<<EOFMD
+**Warning:** this content came from untrusted source.
+EOFMD
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=cfef28936efe7b5f5e18bcd77dd58b4d20fba90b40ddb2101a298f01277c3c70
+sig.count=0

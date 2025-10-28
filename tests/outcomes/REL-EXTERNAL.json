@@ -1,0 +1,4 @@
+{
+  "status": "error",
+  "message": "external relation requires resolver or repository metadata"
+}

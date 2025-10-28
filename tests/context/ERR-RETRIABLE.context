@@ -21,7 +21,7 @@ src=ops:tool
 lang=en
 tags=trace
 op=ctx.execute
-in=
+in=k_bad
 out=k_bad
 cost.kind=ctx.tokens
 cost.val=10
@@ -53,5 +53,5 @@ tags=error
 
 [footer]
 digest=sha256
-digest-base16=c6982dddb22c0e07a415952254b0a86174bf9d68383631c13cf303cae4b61267
+digest-base16=57270248a91b11fee7ccba7f66a6d7a8f5060b7711a8127ee8fc361d3023832a
 sig.count=0

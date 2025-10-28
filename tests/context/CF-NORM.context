@@ -1,0 +1,61 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[policy.cf]
+id=cf.platt.v1
+kind=probability
+model=ctx.platt
+params=a=-1.5;b=2.8
+domain=[0,1]
+monotone=true
+mapping=global
+
+[policy.cf]
+id=cf.isotonic.v1
+kind=probability
+model=ctx.isotonic
+params=
+domain=[0,1]
+monotone=true
+mapping=per-type
+
+[meta]
+doc=01k8p38259pf5fdpk27e32d3yn
+author=golden-suite
+date=2025-10-28T20:25:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_source]
+t=ctx.K
+p=5
+cf=0.650
+cf.src=cf.platt.v1
+ts=2025-10-28T20:24:00Z
+ttl=P180D
+src=corp:platt
+lang=en
+tags=cf,platt
+d=Confidence from Platt model.
+
+[cap k_target]
+t=ctx.K
+p=6
+cf=0.420
+cf.src=cf.isotonic.v1
+ts=2025-10-28T20:24:10Z
+ttl=P180D
+src=corp:isotonic
+lang=en
+tags=cf,isotonic
+d=Confidence from isotonic model.
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=3b2be62c56a527e23947667f497952e488350b3e1393a9303b29fce1bbad98bd
+sig.count=0

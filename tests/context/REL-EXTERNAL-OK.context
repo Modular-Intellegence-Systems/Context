@@ -1,0 +1,40 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p5ebhn9nf5kmsp8tcqkrme
+author=golden-suite
+date=2025-10-28T21:05:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[resolution]
+resolver.order=cache,repo
+resolver.schemes=ctx
+wellknown.domain=context.wellknown.io
+
+[repo 1]
+uri=https://example.org/context-repo
+priority=3
+
+[cap k_local]
+t=ctx.K
+p=5
+cf=0.820
+ts=2025-10-28T21:00:00Z
+ttl=P180D
+src=ops:local
+lang=en
+tags=external,ok
+d=Local capsule with resolver metadata.
+
+[rel]
+r=k_local|ctx.supports|@01k8p5fhkpggtgstferzkmqy3r#k_remote
+
+[footer]
+digest=sha256
+digest-base16=72579efd57ab05432d13ae315accd5b105f94952660a436dffe2b7be0ee03d0f
+sig.count=0

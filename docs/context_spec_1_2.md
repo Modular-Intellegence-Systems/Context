@@ -604,6 +604,16 @@ Reference artefacts ("golden files") SHALL be produced for each scenario below. 
 
 Future revisions SHALL attach file names (e.g. `tests/RES-DOC.context`) and computed digests for reproducibility.
 
+### 15.1 Automation
+
+A reference validator (`tests/run_goldens.py`) executes the full matrix:
+
+```
+python tests/run_goldens.py
+```
+
+The script parses each `tests/context/*.context`, computes the canonical digest via `ctx_lint.parse_document`, and compares the result with the expected JSON stored in `tests/outcomes/<name>.json`. CI pipelines MUST invoke this runner and fail the build on any mismatch (unexpected digest/profile/status).
+
 ---
 
 ## 16. Annexes (normative)

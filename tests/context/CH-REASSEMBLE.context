@@ -1,0 +1,5 @@
+@CONTEXT/1.2 profile=feed canon=CTX-CANON/3
+c|chunk_example|ctx.K|p=5|cf=0.700|ts=2025-10-28T20:10:00Z|ttl=P14D|lang=en|tags=chunk,test|src=ops:chunker|d=^chunk:text/plain:10:0:5:36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c
+abcde
+c|chunk_example|ctx.K|p=5|cf=0.700|ts=2025-10-28T20:10:00Z|ttl=P14D|lang=en|tags=chunk,test|src=ops:chunker|d=^chunk:text/plain:10:1:5:7272207e4b9c7e929f4278d245c7768380b54ecb97b1fbe941a7ccfc27cf01f4
+fghij

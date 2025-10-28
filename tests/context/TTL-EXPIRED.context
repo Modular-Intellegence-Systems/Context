@@ -1,0 +1,37 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[policy.ttl]
+id=ttl.v1
+states=fresh,stale,expired
+stale=P30D
+expired.action=exclude
+
+[meta]
+doc=01k8p361rsas0k7a4jsjgjhwdf
+author=golden-suite
+date=2025-10-28T20:20:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+policy.ttl=ttl.v1
+
+[cap k_old]
+t=ctx.K
+p=3
+cf=0.400
+ts=2025-07-01T00:00:00Z
+ttl=P30D
+src=ops:test
+lang=en
+tags=test,ttl
+d=Expired capsule should be excluded by policy.
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=28d02546e1e7e975f029b769ee7aa2703e351901f6ea3bda6a989668f765ad07
+sig.count=0

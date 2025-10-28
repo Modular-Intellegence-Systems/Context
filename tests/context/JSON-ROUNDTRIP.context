@@ -1,0 +1,31 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+data=data:
+
+[meta]
+doc=01k8p3bt39zp67y19f5ea4t24h
+author=golden-suite
+date=2025-10-28T20:30:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+
+[cap k_json]
+t=ctx.K
+p=5
+cf=0.900
+ts=2025-10-28T20:29:00Z
+ttl=P180D
+src=data:source
+lang=en
+tags=json,test
+d=Capsule for JSON round-trip validation.
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=348ddda57a27e16b76f64587c7a8dc3fd991528c54408825b90e4ba73d7eefbe
+sig.count=0

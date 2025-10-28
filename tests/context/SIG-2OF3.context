@@ -1,0 +1,47 @@
+@CONTEXT/1.2 profile=human canon=CTX-CANON/3
+[ns]
+ctx=ctx:
+
+[meta]
+doc=01k8p3h2vymzk0cwvybfq4b425
+author=golden-suite
+date=2025-10-28T20:35:00Z
+schema=CONTEXT
+version=1.2
+units=ctx.tokens
+lang=en
+sig.policy=k-of-n
+sig.k=2
+
+[cap k_topic]
+t=ctx.K
+p=4
+cf=0.750
+ts=2025-10-28T20:34:00Z
+ttl=P365D
+src=ops:signers
+lang=en
+tags=signature,test
+d=Document signed by 2-of-3 policy.
+
+[rel]
+
+[footer]
+digest=sha256
+digest-base16=822f22a43cb2ac2934dd8df7ef941ecbb1a6295f7cb9afb673f70a9a374304e5
+sig.count=3
+sig.1.alg=ed25519
+sig.1.key=did:key:zSignerA
+sig.1.epoch=1
+sig.1.ts=2025-10-28T20:34:30Z
+sig.1.base64=SIG_A
+sig.2.alg=ed25519
+sig.2.key=did:key:zSignerB
+sig.2.epoch=1
+sig.2.ts=2025-10-28T20:34:31Z
+sig.2.base64=SIG_B
+sig.3.alg=ed25519
+sig.3.key=did:key:zSignerC
+sig.3.epoch=1
+sig.3.ts=2025-10-28T20:34:32Z
+sig.3.base64=SIG_C
